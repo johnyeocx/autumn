@@ -8,7 +8,7 @@ import {
   FullProduct,
 } from "@autumn/shared";
 import { SupabaseClient } from "@supabase/supabase-js";
-import { addDays, addSeconds, getTime } from "date-fns";
+import { addDays, addMinutes, addSeconds, getTime } from "date-fns";
 import { FreeTrialService } from "./FreeTrialService.js";
 
 export const validateAndInitFreeTrial = ({
@@ -48,7 +48,7 @@ export const freeTrialToStripeTimestamp = (freeTrial: FreeTrial | null) => {
   if (!freeTrial) return undefined;
   // 1. Add days
   let trialEnd = addDays(new Date(), freeTrial.length);
-  trialEnd = addSeconds(trialEnd, 10);
+  trialEnd = addMinutes(trialEnd, 1);
 
   return Math.ceil(trialEnd.getTime() / 1000);
 };

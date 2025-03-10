@@ -29,6 +29,7 @@ import {
 } from "@/utils/genUtils.js";
 
 import { getGroupbalanceFromParams } from "./groupByUtils.js";
+import { Decimal } from "decimal.js";
 
 export const getBalanceForFeature = async ({
   sb,
@@ -582,6 +583,21 @@ export const getMinCusEntBalance = ({
   }
 
   return Math.min(...balances);
+};
+
+export const getTotalNegativeBalance = (cusEnt: FullCustomerEntitlement) => {
+  let starting = cusEnt.balance! < 0 ? cusEnt.balance! : 0;
+  if (!cusEnt.balances) {
+    return starting;
+  }
+
+  starting = starting - cusEnt.balance!;
+  for (const group in cusEnt.balances) {
+    if (cusEnt.balances[group].balance < 0) {
+      starting = starting - cusEnt.balances[group].balance;
+    }
+  }
+  return starting;
 };
 
 // GET EXISTING USAGE

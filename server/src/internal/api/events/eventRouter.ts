@@ -19,6 +19,7 @@ import { OrgService } from "@/internal/orgs/OrgService.js";
 import { QueueManager } from "@/queue/QueueManager.js";
 import { subDays } from "date-fns";
 import { FeatureService } from "@/internal/features/FeatureService.js";
+import { handleUsageEvent } from "./usageRouter.js";
 
 export const eventsRouter = Router();
 
@@ -132,6 +133,12 @@ export const handleEventSent = async ({
   customer_data: any;
   event_data: any;
 }) => {
+  if (event_data.feature_id) {
+    return handleUsageEvent({
+      req,
+    });
+  }
+
   const { sb, pg, orgId, env } = req;
 
   const org = await OrgService.getFullOrg({

@@ -164,6 +164,7 @@ export default function CursorDemo({
         axiosInstance,
         customerId,
         featureId,
+        userId,
       });
       setHasAccessResponse(data);
       setHasAccessLoading(false);
@@ -223,8 +224,32 @@ export default function CursorDemo({
             </Button>
           </div>
 
-          {/* <div className="flex gap-2 flex-wrap">
-            {buttons.map((button, index) => (
+          <div className="flex gap-2 flex-wrap">
+            <Button
+              variant="gradientPrimary"
+              className="w-fit"
+              onClick={() =>
+                handleBtnClicked({
+                  featureId: "user",
+                  value: 1,
+                })
+              }
+            >
+              Add User
+            </Button>
+            <Button
+              variant="gradientPrimary"
+              className="w-fit"
+              onClick={() =>
+                handleBtnClicked({
+                  featureId: "user",
+                  value: -1,
+                })
+              }
+            >
+              Remove User
+            </Button>
+            {/* {buttons.map((button, index) => (
               <ActionButton
                 key={index}
                 buttonData={button}
@@ -235,8 +260,8 @@ export default function CursorDemo({
                   })
                 }
               />
-            ))}
-          </div> */}
+            ))} */}
+          </div>
 
           {/* Dark search input component */}
           <div className="mt-6">

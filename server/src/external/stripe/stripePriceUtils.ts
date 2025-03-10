@@ -440,6 +440,7 @@ export const createStripePriceIFNotExist = async ({
   entitlements,
   product,
   org,
+  logger,
 }: {
   sb: SupabaseClient;
   stripeCli: Stripe;
@@ -447,6 +448,7 @@ export const createStripePriceIFNotExist = async ({
   entitlements: EntitlementWithFeature[];
   product: Product;
   org: Organization;
+  logger: any;
 }) => {
   const billingType = getBillingType(price.config!);
 
@@ -474,15 +476,15 @@ export const createStripePriceIFNotExist = async ({
       }
     }
   } catch (error: any) {
-    console.log("Stripe price not found / inactive");
-    console.log("Error:", error.message);
+    logger.info("Stripe price not found / inactive");
+    logger.info("Error:", error.message);
     config.stripe_price_id = undefined;
     config.stripe_meter_id = undefined;
   }
 
   if (billingType == BillingType.FixedCycle) {
     if (!config.stripe_price_id) {
-      console.log("Creating stripe fixed cycle price");
+      logger.info("Creating stripe fixed cycle price");
       await createStripeFixedCyclePrice({
         sb,
         stripeCli,
@@ -504,7 +506,7 @@ export const createStripePriceIFNotExist = async ({
       });
 
       if (!productId) {
-        console.log(
+        logger.info(
           "Creating stripe product for in advance price, one off & tiered"
         );
         await createStripeInAdvancePrice({
@@ -520,7 +522,7 @@ export const createStripePriceIFNotExist = async ({
 
     // For the rest
     if (!isOneOffAndTiered && !config.stripe_price_id) {
-      console.log("Creating stripe price for in advance price");
+      logger.info("Creating stripe price for in advance price");
       await createStripeInAdvancePrice({
         sb,
         stripeCli,
@@ -532,7 +534,7 @@ export const createStripePriceIFNotExist = async ({
     }
   } else if (billingType == BillingType.UsageInArrear) {
     if (!config.stripe_price_id) {
-      console.log("Creating stripe price for in arrear price");
+      logger.info("Creating stripe price for in arrear price");
       await createStripeInArrearPrice({
         sb,
         stripeCli,
@@ -544,7 +546,7 @@ export const createStripePriceIFNotExist = async ({
     }
   } else if (billingType == BillingType.InArrearProrated) {
     if (!config.stripe_price_id) {
-      console.log("Creating stripe price for in arrear prorated price");
+      logger.info("Creating stripe price for in arrear prorated price");
       await createStripeInAdvancePrice({
         sb,
         stripeCli,

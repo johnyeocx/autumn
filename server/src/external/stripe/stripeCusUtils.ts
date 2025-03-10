@@ -12,11 +12,13 @@ export const createStripeCusIfNotExists = async ({
   org,
   env,
   customer,
+  logger,
 }: {
   sb: SupabaseClient;
   org: Organization;
   env: AppEnv;
   customer: Customer;
+  logger: any;
 }) => {
   let createNew = false;
   const stripeCli = createStripeCli({ org, env });
@@ -31,6 +33,7 @@ export const createStripeCusIfNotExists = async ({
   }
 
   if (createNew) {
+    logger.info(`Creating new stripe customer for ${customer.id}`);
     const stripeCustomer = await createStripeCustomer({
       org,
       env,

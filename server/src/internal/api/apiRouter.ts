@@ -10,6 +10,7 @@ import { featureApiRouter } from "./features/featureApiRouter.js";
 import { entitledRouter } from "./entitled/entitledRouter.js";
 import { attachRouter } from "./customers/products/attachRouter.js";
 import { pricingMiddleware } from "@/middleware/pricingMiddleware.js";
+import { usageRouter } from "./events/usageRouter.js";
 
 const apiRouter = Router();
 
@@ -46,5 +47,6 @@ apiRouter.use("/entitlements", entitlementApiRouter);
 apiRouter.use("/events", eventsRouter);
 apiRouter.use("/prices", priceRouter);
 apiRouter.use("/entitled", entitledRouter);
+apiRouter.use("/usage", usageRouter);
 
 export { apiRouter };

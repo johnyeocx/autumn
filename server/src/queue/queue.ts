@@ -2,6 +2,8 @@ import { Job, Queue, Worker } from "bullmq";
 import { runUpdateBalanceTask } from "@/trigger/updateBalanceTask.js";
 import { QueueManager } from "./QueueManager.js";
 import { createLogtail } from "@/external/logtail/logtailUtils.js";
+import { runUpdateUsageTask } from "@/trigger/updateUsageTask.js";
+import { JobName } from "./JobName.js";
 
 const NUM_WORKERS = 5;
 
@@ -79,7 +81,11 @@ const initWorker = ({
       }
 
       try {
-        await runUpdateBalanceTask({ payload: job.data, logger: logtail });
+        if (job.name === JobName.UpdateBalance) {
+          await runUpdateBalanceTask({ payload: job.data, logger: logtail });
+        } else if (job.name === JobName.UpdateUsage) {
+          await runUpdateUsageTask({ payload: job.data, logger: logtail });
+        }
       } catch (error) {
         console.error("Error updating balance:", error);
       } finally {

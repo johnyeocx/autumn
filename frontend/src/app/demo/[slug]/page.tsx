@@ -1,4 +1,5 @@
 import { createClient } from "@/utils/supabase/server";
+import CursorDemo from "@/views/demo/CursorDemo";
 
 import DynamicDemoView from "@/views/demo/DynamicDemo";
 import MintDemoView from "@/views/demo/MintDemo";
@@ -16,6 +17,17 @@ export default async function DemoPage({ params }) {
 
   if (error) {
     return <div>Not Found...</div>;
+  }
+
+  if (params.slug == "cursor") {
+    return (
+      <CursorDemo
+        publishableKey={data.publishable_key}
+        secretKey={data.secret_key}
+        name={data.name}
+        buttons={data.buttons}
+      />
+    );
   }
 
   if (params.slug == "mint") {

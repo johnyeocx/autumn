@@ -106,6 +106,7 @@ publicRouter.get("/customers/:customer_id", async (req: any, res: any) => {
       sb: req.sb,
       orgId: req.org.id,
       env: req.env,
+      params: req.query,
     });
 
     res.status(200).json({

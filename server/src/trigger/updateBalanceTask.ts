@@ -29,11 +29,11 @@ import {
   initGroupBalancesForEvent,
 } from "@/internal/customers/entitlements/groupByUtils.js";
 import { notNullish, nullish, nullOrUndefined } from "@/utils/genUtils.js";
-import { getMinCusEntBalance } from "@/internal/customers/entitlements/cusEntUtils.js";
 import {
   creditSystemContainsFeature,
   featureToCreditSystem,
 } from "@/internal/features/creditSystemUtils.js";
+import { getTotalNegativeBalance } from "@/internal/customers/entitlements/cusEntUtils.js";
 
 // Decimal.set({ precision: 12 }); // 12 DP precision
 
@@ -75,7 +75,9 @@ const getFeatureDeductions = ({
 
     // Check if unlimited exists
     let unlimitedExists = cusEnts.some(
-      (cusEnt) => cusEnt.entitlement.allowance_type === AllowanceType.Unlimited
+      (cusEnt) =>
+        cusEnt.entitlement.allowance_type === AllowanceType.Unlimited &&
+        cusEnt.entitlement.internal_feature_id == feature.internal_id
     );
 
     if (unlimitedExists || !deduction) {
@@ -109,13 +111,13 @@ const getFeatureDeductions = ({
   return featureDeductions;
 };
 
-const logBalanceUpdate = ({
+export const logBalanceUpdate = ({
   timeTaken,
   customer,
   features,
   cusEnts,
   featureDeductions,
-  event,
+  properties,
   org,
 }: {
   timeTaken: string;
@@ -123,7 +125,7 @@ const logBalanceUpdate = ({
   features: Feature[];
   cusEnts: FullCustomerEntitlement[];
   featureDeductions: any;
-  event: Event;
+  properties: any;
   org: Organization;
 }) => {
   console.log(`   - getCusEntsInFeatures: ${timeTaken}ms`);
@@ -132,13 +134,13 @@ const logBalanceUpdate = ({
       org.slug
     } | Features: ${features.map((f) => f.id).join(", ")}`
   );
-  console.log("   - Properties:", event.properties);
+  console.log("   - Properties:", properties);
   console.log(
     "   - CusEnts:",
     cusEnts.map((cusEnt: any) => {
       let balanceStr = cusEnt.balance;
       let { groupVal, balance } = getGroupBalanceFromProperties({
-        properties: event.properties,
+        properties,
         cusEnt,
         features,
       });
@@ -229,6 +231,12 @@ export const deductAllowanceFromCusEnt = async ({
     toDeduct = 0;
   }
 
+  const totalNegativeBalance = getTotalNegativeBalance(cusEnt);
+  const originalGrpBalance = Math.max(totalNegativeBalance, balance!);
+  const newGrpBalance = new Decimal(originalGrpBalance)
+    .minus(deducted)
+    .toNumber();
+
   await CustomerEntitlementService.update({
     sb,
     id: cusEnt.id,
@@ -247,8 +255,8 @@ export const deductAllowanceFromCusEnt = async ({
     customer,
     affectedFeature: feature,
     cusEnt: cusEnt as any,
-    originalBalance: getMinCusEntBalance({ cusEnt }),
-    newBalance: getMinCusEntBalance({ cusEnt, newBalance, groupVal }),
+    originalBalance: originalGrpBalance,
+    newBalance: newGrpBalance,
     deduction: deducted,
   });
 
@@ -292,12 +300,10 @@ export const deductFromUsageBasedCusEnt = async ({
   toDeduct,
   deductParams,
   cusEnts,
-  features,
 }: {
   toDeduct: number;
   deductParams: DeductParams;
   cusEnts: FullCustomerEntitlement[];
-  features: Feature[];
 }) => {
   const { sb, feature, env, org, cusPrices, customer, properties } =
     deductParams;
@@ -343,6 +349,12 @@ export const deductFromUsageBasedCusEnt = async ({
     }),
   });
 
+  const totalNegativeBalance = getTotalNegativeBalance(usageBasedEnt);
+  const originalGrpBalance = Math.max(totalNegativeBalance, balance!);
+  const newGrpBalance = new Decimal(originalGrpBalance)
+    .minus(toDeduct)
+    .toNumber();
+
   await adjustAllowance({
     sb,
     env,
@@ -351,12 +363,8 @@ export const deductFromUsageBasedCusEnt = async ({
     cusEnt: usageBasedEnt as any,
     cusPrices: cusPrices as any,
     customer,
-    originalBalance: getMinCusEntBalance({ cusEnt: usageBasedEnt }),
-    newBalance: getMinCusEntBalance({
-      cusEnt: usageBasedEnt,
-      newBalance,
-      groupVal,
-    }),
+    originalBalance: originalGrpBalance,
+    newBalance: newGrpBalance,
     deduction: toDeduct,
   });
 };
@@ -401,7 +409,7 @@ export const updateCustomerBalance = async ({
     features,
     cusEnts,
     featureDeductions,
-    event,
+    properties: event.properties,
     org,
   });
 
@@ -453,7 +461,6 @@ export const updateCustomerBalance = async ({
     await deductFromUsageBasedCusEnt({
       toDeduct,
       cusEnts,
-      features,
       deductParams: {
         sb,
         feature,

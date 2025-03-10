@@ -13,14 +13,17 @@ export const checkAccess = async ({
   axiosInstance,
   customerId,
   featureId,
+  userId,
 }: {
   axiosInstance: AxiosInstance;
   customerId: string;
   featureId: string;
+  userId?: string;
 }) => {
   const { data } = await axiosInstance.post("/entitled", {
     customer_id: customerId,
     feature_id: featureId,
+    group: userId,
   });
   return data;
 };

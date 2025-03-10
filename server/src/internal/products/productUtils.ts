@@ -163,11 +163,13 @@ export const checkStripeProductExists = async ({
   org,
   env,
   product,
+  logger,
 }: {
   sb: SupabaseClient;
   org: Organization;
   env: AppEnv;
   product: FullProduct;
+  logger: any;
 }) => {
   let createNew = false;
   let stripeCli = createStripeCli({
@@ -191,7 +193,7 @@ export const checkStripeProductExists = async ({
   }
 
   if (createNew) {
-    console.log("Creating new product in Stripe");
+    logger.info(`Creating new product in Stripe for ${product.name}`);
     const stripeProduct = await stripeCli.products.create({
       name: product.name,
     });

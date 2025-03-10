@@ -310,7 +310,13 @@ export const getPriceForOverage = (price: Price, overage: number) => {
   }
 
   let amount = 0;
-  let remainingUsage = overage;
+  let billingUnits = usageConfig.billing_units || 1;
+  let remainingUsage = new Decimal(
+    Math.ceil(new Decimal(overage).div(billingUnits).toNumber())
+  )
+    .mul(billingUnits)
+    .toNumber();
+
   for (let i = 0; i < usageConfig.usage_tiers.length; i++) {
     let tier = usageConfig.usage_tiers[i];
 

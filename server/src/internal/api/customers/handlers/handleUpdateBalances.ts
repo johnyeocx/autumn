@@ -262,7 +262,6 @@ export const handleUpdateBalances = async (req: any, res: any) => {
         await deductFromUsageBasedCusEnt({
           toDeduct,
           cusEnts,
-          features,
           deductParams: {
             sb,
             feature,

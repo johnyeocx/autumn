@@ -195,6 +195,7 @@ export const checkStripeConnections = async ({
       org,
       env,
       customer,
+      logger: req.logger,
     }),
   ];
   for (const product of products) {
@@ -204,6 +205,7 @@ export const checkStripeConnections = async ({
         org,
         env,
         product,
+        logger: req.logger,
       })
     );
   }
@@ -220,6 +222,7 @@ export const checkStripeConnections = async ({
         entitlements,
         product: product!,
         org,
+        logger: req.logger,
       })
     );
   }

@@ -31,7 +31,10 @@ import { createStripeInvoiceItem } from "@/internal/customers/invoices/invoiceIt
 import { getRelatedCusEnt } from "@/internal/customers/prices/cusPriceUtils.js";
 import { getNextEntitlementReset } from "@/utils/timeUtils.js";
 import { formatUnixToDateTime, generateId } from "@/utils/genUtils.js";
-import { getMinCusEntBalance } from "@/internal/customers/entitlements/cusEntUtils.js";
+import {
+  getMinCusEntBalance,
+  getTotalNegativeBalance,
+} from "@/internal/customers/entitlements/cusEntUtils.js";
 import { getResetBalancesUpdate } from "@/internal/customers/entitlements/groupByUtils.js";
 import { createLogtailWithContext } from "@/external/logtail/logtailUtils.js";
 
@@ -178,10 +181,13 @@ const handleUsageInArrear = async ({
     return;
   }
 
-  const usage = new Decimal(allowance).minus(minBalance).toNumber();
+  const totalNegativeBalance = getTotalNegativeBalance(relatedCusEnt);
+  const finalBalance = Math.max(totalNegativeBalance, minBalance);
+  const totalQuantity = new Decimal(allowance).minus(finalBalance).toNumber();
   const billingUnits = (price.config as UsagePriceConfig).billing_units || 1;
-  const roundedUsage =
-    Math.ceil(new Decimal(usage).div(billingUnits).toNumber()) * billingUnits;
+  const roundedQuantity =
+    Math.ceil(new Decimal(totalQuantity).div(billingUnits).toNumber()) *
+    billingUnits;
 
   const usageTimestamp = Math.round(
     subDays(new Date(invoice.created * 1000), 1).getTime() / 1000
@@ -191,7 +197,7 @@ const handleUsageInArrear = async ({
     event_name: price.id!,
     payload: {
       stripe_customer_id: customer.processor.id,
-      value: roundedUsage.toString(),
+      value: roundedQuantity.toString(),
     },
     timestamp: usageTimestamp,
   });
@@ -201,7 +207,7 @@ const handleUsageInArrear = async ({
     `✅ Submitted meter event for customer ${customer.id}, feature: ${feature.id}`
   );
   logger.info(
-    `Allowance: ${allowance}, Min Balance: ${minBalance}, Usage: ${usage}, Rounded: ${roundedUsage}`
+    `Allowance: ${allowance}, Min Balance: ${minBalance}, Quantity: ${totalQuantity}, Rounded: ${roundedQuantity}`
   );
 
   let invoiceCreatedStr = formatUnixToDateTime(invoice.created * 1000);

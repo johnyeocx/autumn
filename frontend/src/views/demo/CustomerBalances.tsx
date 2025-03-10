@@ -29,7 +29,8 @@ function CustomerBalances({ customer }: { customer: any }) {
             {entitlement.unlimited === true
               ? "Unlimited"
               : entitlement.balance !== undefined
-              ? entitlement.balance + entitlement.used === 0
+              ? // ? entitlement.balance + entitlement.used === 0
+                entitlement.balance < 0
                 ? `Used: ${-entitlement.balance}`
                 : `${entitlement.balance} / ${
                     entitlement.balance + entitlement.used

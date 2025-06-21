@@ -26,12 +26,12 @@ export function SearchBar({
   const debouncedSearch = useMemo(
     () =>
       debounce(async (query: string) => {
+        setSearching(true);
         let params = new URLSearchParams(location.search);
         params.set("q", query);
-        // setQuery(query);
         navigate(`${location.pathname}?${params.toString()}`);
       }, 350),
-    []
+    [location.search, location.pathname, navigate, setSearching]
   );
 
   const handleQueryChange = async () => {
@@ -43,13 +43,13 @@ export function SearchBar({
     setSearching(false);
   };
 
-  // useEffect(() => {
-  //   const searchParamQuery = searchParams.get("q") || "";
-  //   if (searchParamQuery !== prevQueryRef.current) {
-  //     prevQueryRef.current = searchParamQuery;
-  //     handleQueryChange();
-  //   }
-  // }, [searchParams]);
+  useEffect(() => {
+    const searchParamQuery = searchParams.get("q") || "";
+    if (searchParamQuery !== prevQueryRef.current) {
+      prevQueryRef.current = searchParamQuery;
+      handleQueryChange();
+    }
+  }, [searchParams]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const q = e.target.value;

@@ -4,19 +4,21 @@ import { navigateTo } from "@/utils/genUtils";
 import LoadingScreen from "@/views/general/LoadingScreen";
 import { MainSidebar } from "@/views/main-sidebar/MainSidebar";
 import { AppEnv } from "@autumn/shared";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router";
 
 import { usePostHog } from "posthog-js/react";
 import { Button } from "@/components/ui/button";
-import { ArrowUpRightFromSquare } from "lucide-react";
+import { ArrowUpRightFromSquare, PanelLeft, PanelRight } from "lucide-react";
 import { AutumnProvider } from "autumn-js/react";
 import { useSession } from "@/lib/auth-client";
 import { CustomToaster } from "@/components/general/CustomToaster";
+import { SidebarContext, useSidebarContext } from "@/views/main-sidebar/SidebarContext";
 
 export function MainLayout() {
   const env = useEnv();
   const { data, isPending } = useSession();
+  const [sidebarState, setSidebarState] = useState<"expanded" | "collapsed">("expanded");
 
   const navigate = useNavigate();
   const posthog = usePostHog();
@@ -37,33 +39,35 @@ export function MainLayout() {
   // 1. If not loaded, show loading screen
   if (isPending) {
     return (
-      <div className="w-screen h-screen flex bg-stone-100">
-        <MainSidebar />
-        <div className="w-full h-screen flex flex-col overflow-hidden py-3 pr-3">
-          <div className="w-full h-full flex flex-col overflow-hidden rounded-lg border">
-            {env === AppEnv.Sandbox && (
-              <div className="w-full min-h-10 h-10 bg-amber-100 text-white text-sm flex items-center justify-center relative px-4">
-                <p className="font-medium text-amber-500 font-mono">
-                  You&apos;re in sandbox
-                </p>
-                <Button
-                  variant="default"
-                  className="h-6 border border-amber-500 bg-transparent text-amber-500 hover:bg-amber-500 hover:text-white font-mono rounded-xs ml-auto absolute right-4"
-                  onClick={() => {
-                    navigateTo("/onboarding", navigate, AppEnv.Sandbox);
-                  }}
-                >
-                  Onboarding
-                  <ArrowUpRightFromSquare size={12} className="inline ml-1" />
-                </Button>
+      <SidebarContext.Provider value={{ state: sidebarState, setState: setSidebarState }}>
+        <div className="w-screen h-screen flex bg-stone-100">
+          <MainSidebar />
+          <div className="w-full h-screen flex flex-col overflow-hidden py-3 pr-3">
+            <div className="w-full h-full flex flex-col overflow-hidden rounded-lg border">
+              {env === AppEnv.Sandbox && (
+                <div className="w-full min-h-10 h-10 bg-amber-100 text-white text-sm flex items-center justify-center relative px-4">
+                  <p className="font-medium text-amber-500 font-mono">
+                    You&apos;re in sandbox
+                  </p>
+                  <Button
+                    variant="default"
+                    className="h-6 border border-amber-500 bg-transparent text-amber-500 hover:bg-amber-500 hover:text-white font-mono rounded-xs ml-auto absolute right-4"
+                    onClick={() => {
+                      navigateTo("/onboarding", navigate, AppEnv.Sandbox);
+                    }}
+                  >
+                    Onboarding
+                    <ArrowUpRightFromSquare size={12} className="inline ml-1" />
+                  </Button>
+                </div>
+              )}
+              <div className="flex bg-stone-50 flex-col h-full">
+                <LoadingScreen />
               </div>
-            )}
-            <div className="flex bg-stone-50 flex-col h-full">
-              <LoadingScreen />
             </div>
           </div>
         </div>
-      </div>
+      </SidebarContext.Provider>
     );
   }
 
@@ -84,11 +88,13 @@ export function MainLayout() {
 
   return (
     <AutumnProvider backendUrl={import.meta.env.VITE_BACKEND_URL}>
-      <main className="w-screen h-screen flex bg-stone-100">
-        <CustomToaster />
-        <MainSidebar />
-        <MainContent />
-      </main>
+      <SidebarContext.Provider value={{ state: sidebarState, setState: setSidebarState }}>
+        <main className="w-screen h-screen flex bg-stone-100">
+          <CustomToaster />
+          <MainSidebar />
+          <MainContent />
+        </main>
+      </SidebarContext.Provider>
     </AutumnProvider>
   );
 }
@@ -96,10 +102,25 @@ export function MainLayout() {
 const MainContent = () => {
   const env = useEnv();
   const navigate = useNavigate();
+  const { state, setState } = useSidebarContext();
+
+  const toggleSidebar = () => {
+    setState(state === "expanded" ? "collapsed" : "expanded");
+  };
 
   return (
-    <div className="w-full h-screen flex flex-col justify-center overflow-hidden py-3 pr-3">
+    <div className="w-full h-screen flex flex-col justify-center overflow-hidden py-3 pr-3 relative">
       <div className="w-full h-full flex flex-col overflow-hidden rounded-lg border">
+        {/* Toggle Button */}
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={toggleSidebar}
+          className="absolute top-4 left-2 z-10 border-none border-0 shadow-none bg-stone-50 hover:bg-stone-100 text-stone-600 hover:text-stone-800 focus:ring-0 focus:outline-none"
+        >
+          {state === "expanded" ? <PanelLeft size={16} /> : <PanelRight size={16} />}
+        </Button>
+        
         {env === AppEnv.Sandbox && (
           <div className="w-full min-h-10 h-10 bg-amber-100 text-sm flex items-center justify-center relative px-4 text-amber-500 ">
             <p className="font-medium font-mono">You&apos;re in sandbox</p>

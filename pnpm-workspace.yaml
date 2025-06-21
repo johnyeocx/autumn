@@ -1,4 +1,13 @@
 packages:
-  - 'shared'
-  - 'server'
-  - 'vite'
+  - shared
+  - server
+  - vite
+onlyBuiltDependencies:
+  - '@clerk/shared'
+  - '@tailwindcss/oxide'
+  - core-js
+  - esbuild
+  - iframe-resizer
+  - msgpackr-extract
+  - puppeteer
+  - sharp

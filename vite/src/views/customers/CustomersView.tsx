@@ -227,9 +227,24 @@ function CustomersView({ env }: { env: AppEnv }) {
               <CustomersTable customers={data.customers} />
             </div>
           ) : (
-            <div className="flex rounded-md items-start pl-10 text-t3 text-sm w-full h-[150px] pt-4">
-              <span className="">No customers found... yet ;)</span>
-            </div>
+            <div className="flex flex-col items-center justify-center text-t3 text-sm w-full min-h-[60vh] gap-4">
+  <img
+    src="./customer.png"
+    alt="No customers"
+    className="w-48 h-48 opacity-60 filter grayscale"
+    // className="w-48 h-48 opacity-80 filter brightness-0 invert" // this is for dark mode
+  />
+  <span>
+    {
+      // Show loading state during search transitions to prevent flash of incorrect message
+      (paginationLoading || searching) 
+        ? "Loading..." 
+        : searchParams.get("q")?.trim()
+        ? "No matching results found. Try a different search."
+        : "No customers found... yet 😉"
+    }
+  </span>
+</div>
           )}
         </div>
         {/* <div className="shrink-0 sticky bottom-0">

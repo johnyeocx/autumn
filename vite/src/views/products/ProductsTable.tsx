@@ -48,12 +48,21 @@ export const ProductsTable = ({
         !onboarding && (
           <div
             className={cn(
-              "flex justify-start items-center h-10 px-10 text-t3",
+              "flex flex-col justify-center items-center h-10 px-10 text-t3 min-h-[60vh] gap-4",
               onboarding && "px-2 mt-4",
             )}
           >
-            Products define the features your customers can access and how much
-            they cost. Create your first product to get started ☝️.
+            <img
+              src="./product.png"
+              alt="Products"
+              className="w-48 h-48 opacity-60 filter grayscale"
+              // className="w-48 h-48 opacity-80 filter brightness-0 invert" // this is for dark mode
+            />
+            <span className="text-center">
+              Products define the features your customers can access and how much{" "}
+              <br />
+              they cost. Create your first product to get started ☝️.
+            </span>
           </div>
         )
       )}
